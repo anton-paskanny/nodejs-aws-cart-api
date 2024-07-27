@@ -1,7 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
+import * as rds from 'aws-cdk-lib/aws-rds';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import * as dotenv from 'dotenv';
-import * as rds from 'aws-cdk-lib/aws-rds';
 import * as path from 'path';
 import { CartApi } from '../api/api.gateway';
 import { CartServiceLambda } from '../lambdas/cart-lambda';
@@ -18,14 +19,24 @@ export class CdkStack extends cdk.Stack {
     const dbPort = process.env.DB_PORT!;
     const dbName = process.env.DB_NAME!;
 
+    const dbResourceId = process.env.DB_RESOURCE_ID!;
+    const dbSecurityGroupId = process.env.DB_SECURITY_GROUP_ID!;
+
+    const rdsSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
+      this,
+      'RdsSecurityGroup',
+      dbSecurityGroupId,
+    );
+
     const rdsInstance = rds.DatabaseInstance.fromDatabaseInstanceAttributes(
       this,
       'MyRDSInstance',
       {
         instanceIdentifier: dbName,
         instanceEndpointAddress: dbHost,
+        instanceResourceId: dbResourceId,
         port: parseInt(dbPort!, 10),
-        securityGroups: [],
+        securityGroups: [rdsSecurityGroup],
       },
     );
 
