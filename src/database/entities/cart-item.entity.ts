@@ -14,7 +14,6 @@ export class CartItemEntity {
 
   @ManyToOne(() => CartEntity, (cart) => cart.items, {
     onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
     nullable: false,
   })
   cart: CartEntity;
