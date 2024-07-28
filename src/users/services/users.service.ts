@@ -1,28 +1,44 @@
-import { Injectable } from '@nestjs/common';
-
+import { Repository } from 'typeorm';
 import { v4 } from 'uuid';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 
-import { User } from '../models';
+import { UserEntity } from 'src/database/entities/user.entity';
+import { CreateUserDto } from '../dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  private readonly users: Record<string, User>;
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
+  ) {}
 
-  constructor() {
-    this.users = {}
+  async findOneById(userId: string): Promise<UserEntity> {
+    console.log('[UsersService], findOneById, id: ', userId);
+    return await this.userRepo.findOneBy({ id: userId });
   }
 
-  findOne(userId: string): User {
-    return this.users[ userId ];
+  async findOneByName(userName: string): Promise<UserEntity> {
+    console.log('[UsersService], findOneByName, userName: ', userName);
+    return await this.userRepo.findOneBy({ name: userName });
   }
 
-  createOne({ name, password }: User): User {
-    const id = v4();
-    const newUser = { id: name || id, name, password };
+  async createOne({ name, password, email }: CreateUserDto) {
+    console.log('[UsersService], createOne, name: ', name);
+    console.log('[UsersService], createOne, email: ', email);
 
-    this.users[ id ] = newUser;
+    try {
+      const id = v4();
 
-    return newUser;
+      const newUser = this.userRepo.create({ id, name, password, email });
+
+      console.log('[UsersService], createOne, new user: ', newUser);
+
+      const user = await this.userRepo.save(newUser);
+
+      return user;
+    } catch (error) {
+      console.log('[UsersService], createOne, error: ', error);
+    }
   }
-
 }
