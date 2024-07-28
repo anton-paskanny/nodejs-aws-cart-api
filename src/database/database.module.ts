@@ -26,6 +26,9 @@ import { CartItemEntity } from './entities/cart-item.entity';
           synchronize: true,
           logging: true,
           namingStrategy: new SnakeNamingStrategy(),
+          ssl: {
+            rejectUnauthorized: false,
+          },
         };
       },
     }),

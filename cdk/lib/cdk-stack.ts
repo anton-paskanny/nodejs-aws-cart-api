@@ -13,7 +13,7 @@ export class CdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const dbUsername = process.env.DB_USERNAME!;
+    const dbUsername = process.env.DB_USER!;
     const dbPassword = process.env.DB_PASSWORD!;
     const dbHost = process.env.DB_HOST!;
     const dbPort = process.env.DB_PORT!;
@@ -41,7 +41,7 @@ export class CdkStack extends cdk.Stack {
     );
 
     const environment = {
-      DB_USERNAME: dbUsername,
+      DB_USER: dbUsername,
       DB_PASSWORD: dbPassword,
       DB_HOST: dbHost,
       DB_PORT: dbPort,
