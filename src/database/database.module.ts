@@ -23,7 +23,7 @@ import { CartItemEntity } from './entities/cart-item.entity';
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_NAME'),
           entities: [CartEntity, CartItemEntity, OrderEntity, UserEntity],
-          synchronize: true,
+          synchronize: false,
           logging: true,
           namingStrategy: new SnakeNamingStrategy(),
           ssl: {

@@ -15,7 +15,6 @@ import { BasicAuthGuard } from '../auth';
 import { OrderService } from '../order';
 import { AppRequest, getUserIdFromRequest } from '../shared';
 
-import { calculateCartTotal } from './models-rules';
 import { CartService } from './services';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { CartStatuses } from './models';
