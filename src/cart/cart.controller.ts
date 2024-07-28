@@ -8,6 +8,7 @@ import {
   Post,
   UseGuards,
   HttpStatus,
+  ValidationPipe,
 } from '@nestjs/common';
 
 import { BasicAuthGuard } from '../auth';
@@ -16,6 +17,9 @@ import { AppRequest, getUserIdFromRequest } from '../shared';
 
 import { calculateCartTotal } from './models-rules';
 import { CartService } from './services';
+import { UpdateCartDto } from './dto/update-cart.dto';
+import { CartStatuses } from './models';
+import { CheckoutCartDto } from './dto/checout-cart.dto';
 
 @Controller('api/profile/cart')
 export class CartController {
@@ -24,85 +28,159 @@ export class CartController {
     private orderService: OrderService,
   ) {}
 
-  // @UseGuards(JwtAuthGuard)
   @UseGuards(BasicAuthGuard)
   @Get()
-  findUserCart(@Req() req: AppRequest) {
-    const cart = this.cartService.findOrCreateByUserId(
-      getUserIdFromRequest(req),
-    );
+  async findUserCart(@Req() req: AppRequest) {
+    try {
+      const userIdFromReq = getUserIdFromRequest(req);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: { cart, total: calculateCartTotal(cart) },
-    };
+      console.log(
+        '[CartController], findUserCart, userIdFromReq: ',
+        userIdFromReq,
+      );
+
+      const cart = await this.cartService.findOrCreateByUserId(userIdFromReq);
+
+      console.log('[CartController], findUserCart, cart', cart);
+
+      const cartItems = await this.cartService.findItemsByCartId(cart.id);
+
+      console.log('[CartController], findUserCart, items in cart', cartItems);
+
+      const result = {
+        statusCode: HttpStatus.OK,
+        message: 'OK',
+        data: {
+          ...cart,
+          items: cartItems,
+        },
+      };
+
+      console.log('[CartController], findUserCart, result: ', cartItems);
+
+      return result;
+    } catch (error) {
+      console.log('[CartController], findUserCart, error: ', error);
+    }
   }
 
-  // @UseGuards(JwtAuthGuard)
   @UseGuards(BasicAuthGuard)
   @Put()
-  updateUserCart(@Req() req: AppRequest, @Body() body) {
-    // TODO: validate body payload...
-    const cart = this.cartService.updateByUserId(
-      getUserIdFromRequest(req),
-      body,
+  async updateUserCart(
+    @Req() req: AppRequest,
+    @Body(new ValidationPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
+    updateCartDto: UpdateCartDto,
+  ) {
+    const userIdFromReq = getUserIdFromRequest(req);
+
+    console.log(
+      '[CartController], updateUserCart, userIdFromReq: ',
+      userIdFromReq,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: {
-        cart,
-        total: calculateCartTotal(cart),
-      },
-    };
-  }
+    console.log(
+      '[CartController], updateUserCart, updateCartDto: ',
+      updateCartDto,
+    );
 
-  // @UseGuards(JwtAuthGuard)
-  @UseGuards(BasicAuthGuard)
-  @Delete()
-  clearUserCart(@Req() req: AppRequest) {
-    this.cartService.removeByUserId(getUserIdFromRequest(req));
+    try {
+      const cart = await this.cartService.updateByUserId(
+        userIdFromReq,
+        updateCartDto,
+      );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-    };
-  }
-
-  // @UseGuards(JwtAuthGuard)
-  @UseGuards(BasicAuthGuard)
-  @Post('checkout')
-  checkout(@Req() req: AppRequest, @Body() body) {
-    const userId = getUserIdFromRequest(req);
-    const cart = this.cartService.findByUserId(userId);
-
-    if (!(cart && cart.items.length)) {
-      const statusCode = HttpStatus.BAD_REQUEST;
-      req.statusCode = statusCode;
+      console.log('[CartController], updateUserCart, updatedCart: ', cart);
 
       return {
-        statusCode,
-        message: 'Cart is empty',
+        statusCode: HttpStatus.OK,
+        message: 'OK',
+        data: {
+          cart,
+        },
       };
+    } catch (error) {
+      console.log('[CartController], updateUserCart, error: ', error);
     }
+  }
 
-    const { id: cartId, items } = cart;
-    const total = calculateCartTotal(cart);
-    const order = this.orderService.create({
-      ...body, // TODO: validate and pick only necessary data
-      userId,
-      cartId,
-      items,
-      total,
-    });
-    this.cartService.removeByUserId(userId);
+  @UseGuards(BasicAuthGuard)
+  @Delete()
+  async clearUserCart(@Req() req: AppRequest) {
+    const userIdFromReq = getUserIdFromRequest(req);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: { order },
-    };
+    console.log(
+      '[CartController], clearUserCart, userIdFromReq: ',
+      userIdFromReq,
+    );
+
+    try {
+      await this.cartService.removeByUserId(userIdFromReq);
+
+      console.log(
+        `[CartController], clearUserCart, cart was removed for the suer with ${userIdFromReq} id.`,
+        userIdFromReq,
+      );
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OK',
+      };
+    } catch (error) {
+      console.log('[CartController], clearUserCart, error: ', error);
+    }
+  }
+
+  @UseGuards(BasicAuthGuard)
+  @Post('checkout')
+  async checkout(
+    @Req() req: AppRequest,
+    @Body(new ValidationPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
+    checkoutCartDto: CheckoutCartDto,
+  ) {
+    const userIdFromReq = getUserIdFromRequest(req);
+
+    console.log('[CartController], checkout, userIdFromReq: ', userIdFromReq);
+
+    console.log(
+      '[CartController], checkout, checkoutCartDto: ',
+      checkoutCartDto,
+    );
+
+    try {
+      const cart = await this.cartService.findByUserId(userIdFromReq);
+
+      console.log('[CartController], checkout, cart: ', cart);
+
+      const cartItems = await this.cartService.findItemsByCartId(cart.id);
+
+      console.log('[CartController], checkout, cartItems: ', cartItems);
+
+      if (!cart && !cartItems.length) {
+        console.log('[CartController], checkout, error: empty cart');
+
+        return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Error: empty cart',
+        };
+      }
+
+      const order = await this.orderService.create({
+        ...checkoutCartDto,
+        userId: userIdFromReq,
+        cartId: cart.id,
+        status: CartStatuses.ORDERED,
+        total: cartItems.length,
+      });
+
+      console.log('[CartController], checkout, order: ', order);
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OK',
+        data: { order },
+      };
+    } catch (error) {
+      console.log('[CartController], checkout, error: ', error);
+    }
   }
 }
