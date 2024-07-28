@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 import { OrderEntity } from './entities/order.entity';
 import { CartEntity } from './entities/cart.entity';
@@ -24,6 +25,7 @@ import { CartItemEntity } from './entities/cart-item.entity';
           entities: [CartEntity, CartItemEntity, OrderEntity, UserEntity],
           synchronize: true,
           logging: true,
+          namingStrategy: new SnakeNamingStrategy(),
         };
       },
     }),
