@@ -7,6 +7,13 @@ interface CartApiProps extends cdk.StackProps {
   cartLambdaFn: lambda.Function;
 }
 
+const DEFAULT_4XX = {
+  type: apigateway.ResponseType.DEFAULT_4XX,
+  responseHeaders: {
+    'Access-Control-Allow-Origin': "'*'",
+  },
+};
+
 export class CartApi extends Construct {
   constructor(scope: Construct, id: string, props: CartApiProps) {
     super(scope, id);
@@ -21,7 +28,7 @@ export class CartApi extends Construct {
       },
     });
 
-    const cartResource = api.root.addResource('cart');
+    api.addGatewayResponse('GetPresignedUrlDefault4xx', DEFAULT_4XX);
 
     const cartLambdaIntegration = new apigateway.LambdaIntegration(
       props.cartLambdaFn,
@@ -31,11 +38,7 @@ export class CartApi extends Construct {
       },
     );
 
-    cartResource.addMethod('GET', cartLambdaIntegration);
-    cartResource.addMethod('PUT', cartLambdaIntegration);
-    cartResource.addMethod('DELETE', cartLambdaIntegration);
-
-    const checkoutResource = cartResource.addResource('checkout');
-    checkoutResource.addMethod('POST', cartLambdaIntegration);
+    const proxyResource = api.root.addResource('{proxy+}');
+    proxyResource.addMethod('ANY', cartLambdaIntegration);
   }
 }
