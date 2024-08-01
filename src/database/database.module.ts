@@ -24,7 +24,7 @@ import { CartItemEntity } from './entities/cart-item.entity';
           database: configService.get<string>('DB_NAME'),
           entities: [CartEntity, CartItemEntity, OrderEntity, UserEntity],
           synchronize: false,
-          logging: true,
+          logging: false,
           namingStrategy: new SnakeNamingStrategy(),
           ssl: {
             rejectUnauthorized: false,

@@ -42,7 +42,7 @@ export class OrderService {
         async (transactionalEntityManager) => {
           await transactionalEntityManager.save(OrderEntity, newOrder);
 
-          const cart = await this.cartService.findByUserId(data.userId);
+          const cart = await this.cartService.findOpenCartByUserId(data.userId);
           cart.status = CartStatuses.ORDERED;
 
           console.log(
