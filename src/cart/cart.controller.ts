@@ -16,9 +16,9 @@ import { OrderService } from '../order';
 import { AppRequest, getUserIdFromRequest } from '../shared';
 
 import { CartService } from './services';
-import { UpdateCartDto } from './dto/update-cart.dto';
+import { CartItemDto } from './dto/update-cart.dto';
 import { CartStatuses } from './models';
-import { CheckoutCartDto } from './dto/checout-cart.dto';
+import { CheckoutCartDto } from './dto/checkout-cart.dto';
 
 @Controller('api/profile/cart')
 export class CartController {
@@ -60,6 +60,10 @@ export class CartController {
       return result;
     } catch (error) {
       console.log('[CartController], findUserCart, error: ', error);
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      };
     }
   }
 
@@ -68,7 +72,7 @@ export class CartController {
   async updateUserCart(
     @Req() req: AppRequest,
     @Body(new ValidationPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-    updateCartDto: UpdateCartDto,
+    updateCartDto: CartItemDto,
   ) {
     const userIdFromReq = getUserIdFromRequest(req);
 
@@ -99,6 +103,10 @@ export class CartController {
       };
     } catch (error) {
       console.log('[CartController], updateUserCart, error: ', error);
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      };
     }
   }
 
@@ -114,19 +122,23 @@ export class CartController {
 
     try {
       await this.cartService.removeByUserId(userIdFromReq);
-
-      console.log(
-        `[CartController], clearUserCart, cart was removed for the suer with ${userIdFromReq} id.`,
-        userIdFromReq,
-      );
-
-      return {
-        statusCode: HttpStatus.OK,
-        message: 'OK',
-      };
     } catch (error) {
       console.log('[CartController], clearUserCart, error: ', error);
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      };
     }
+
+    console.log(
+      `[CartController], clearUserCart, cart was removed for the suer with ${userIdFromReq} id.`,
+      userIdFromReq,
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'OK',
+    };
   }
 
   @UseGuards(BasicAuthGuard)
@@ -140,13 +152,18 @@ export class CartController {
 
     console.log('[CartController], checkout, userIdFromReq: ', userIdFromReq);
 
+    if (!userIdFromReq) {
+      console.log('[CartController], checkout, No user id in the request');
+      return;
+    }
+
     console.log(
       '[CartController], checkout, checkoutCartDto: ',
       checkoutCartDto,
     );
 
     try {
-      const cart = await this.cartService.findByUserId(userIdFromReq);
+      const cart = await this.cartService.findOpenCartByUserId(userIdFromReq);
 
       console.log('[CartController], checkout, cart: ', cart);
 
@@ -155,23 +172,23 @@ export class CartController {
       console.log('[CartController], checkout, cartItems: ', cartItems);
 
       if (!cart && !cartItems.length) {
-        console.log('[CartController], checkout, error: empty cart');
+        console.log('[CartController], checkout, cart is empty');
 
         return {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Error: empty cart',
+          message: 'Error: cart is empty',
         };
       }
 
-      const order = await this.orderService.create({
-        ...checkoutCartDto,
+      const order = await this.orderService.createOrder({
         userId: userIdFromReq,
         cartId: cart.id,
         status: CartStatuses.ORDERED,
         total: cartItems.length,
+        ...checkoutCartDto,
       });
 
-      console.log('[CartController], checkout, order: ', order);
+      console.log('[CartController], checkout, created order: ', order);
 
       return {
         statusCode: HttpStatus.OK,
@@ -180,6 +197,10 @@ export class CartController {
       };
     } catch (error) {
       console.log('[CartController], checkout, error: ', error);
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      };
     }
   }
 }

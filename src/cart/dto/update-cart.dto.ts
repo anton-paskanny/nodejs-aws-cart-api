@@ -1,10 +1,4 @@
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CartItemDto {
   @IsString()
@@ -14,10 +8,4 @@ export class CartItemDto {
   @IsNumber()
   @IsNotEmpty()
   count: number;
-}
-
-export class UpdateCartDto {
-  @ValidateNested({ each: true })
-  @Type(() => CartItemDto)
-  items: CartItemDto[];
 }

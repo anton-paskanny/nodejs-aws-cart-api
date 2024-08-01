@@ -71,6 +71,8 @@ export class CartService {
 
     const { items } = updateCartDto;
 
+    console.log('[CartService], updateByUserId, cart items from dto: ', items);
+
     let userCart;
 
     try {
@@ -129,6 +131,11 @@ export class CartService {
   async removeByUserId(userId: string): Promise<void> {
     console.log(`[CartService], removeByUserId, userId: ${userId}`);
 
+    if (!userId) {
+      console.log('[CartService], removeByUserId, error: no userId');
+      return;
+    }
+
     try {
       const userCart = await this.findByUserId(userId);
 
@@ -137,12 +144,13 @@ export class CartService {
           `[CartService], removeByUserId, cart is not found for the user with ${userId} id`,
         );
         throw new Error(`Cart is not found for the user with ${userId} id`);
-      } else {
-        await this.cartRepo.delete({ userId });
-        console.log(
-          `[CartService], removeByUserId, cart was deleted for the user with ${userId} id`,
-        );
       }
+
+      await this.cartRepo.delete({ userId });
+
+      console.log(
+        `[CartService], removeByUserId, cart was deleted successfully`,
+      );
     } catch (error) {
       console.log('[CartService], removeByUserId, error: ', error);
     }
