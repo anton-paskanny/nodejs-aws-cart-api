@@ -1,20 +1,17 @@
-import { CartItem } from '../../cart/models';
+import { CartStatuses } from 'src/cart';
 
-export type Order = {
-  id?: string,
+export type OrderType = {
+  id?: string;
   userId: string;
   cartId: string;
-  items: CartItem[]
   payment: {
-    type: string,
-    address?: any,
-    creditCard?: any,
-  },
+    type: string;
+  };
   delivery: {
-    type: string,
-    address: any,
-  },
-  comments: string,
-  status: string;
+    type: string;
+    address: string;
+  };
+  comments: string;
+  status: CartStatuses;
   total: number;
-}
+};
