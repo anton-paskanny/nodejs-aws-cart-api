@@ -12,7 +12,7 @@ dist
 # Ignore environment files
 .env
 
-# Ignore CDK stack files
+# Ignore CDK stack folder
 cdk
 
 # Ignore SQL scripts used for task 8

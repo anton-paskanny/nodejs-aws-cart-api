@@ -6,7 +6,7 @@
 [travis-url]: https://travis-ci.org/nestjs/nest
 [linux-image]: https://img.shields.io/travis/nestjs/nest/master.svg?label=linux
 [linux-url]: https://travis-ci.org/nestjs/nest
-  
+
   <p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, heavily inspired by <a href="https://angular.io" target="blank">Angular</a>.</p>
     <p align="center">
 <a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
@@ -60,6 +60,27 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Docker section
+
+#### Command to build the image:
+
+docker build -t antonp-cart-app .
+
+#### Command to run the container:
+
+docker run -d --rm -p 4000:4000 --name antonp-cart-app-running --env-file .env antonp-cart-app
+
+#### .dockerignore configuration:
+
+#### Files excluded from the Docker image:
+
+- `dist` - the dist folder is generated in the #step 1, so no need to copy it inside the image.
+- `sql` - these scripts are used only manually to fill the db from the task 8.
+- `cdk` - this folder contains the code to set a correct infrustrtucte, not need to keep it inside the image since we only need to pack `NestJS` app.
+- `Dockerfile` - this file is used to build the image, we don't need to keep there.
+- `node_modules` - the dependencies are generated in the #step 1, no need to copy them.
+- `rest files specified in the .dockerignore` - those files are eslint and prettier configs (only used in dev, not prod), .git and gitignore files and so on. See the `.dockerignore` file for more explanation.
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
@@ -72,4 +93,4 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 ## License
 
-  Nest is [MIT licensed](LICENSE).
+Nest is [MIT licensed](LICENSE).
