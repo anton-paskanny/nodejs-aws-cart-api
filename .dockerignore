@@ -9,9 +9,6 @@ dist
 # Prettier configuration
 .prettierrc
 
-# Ignore environment files
-.env
-
 # Ignore CDK stack folder
 cdk
 
