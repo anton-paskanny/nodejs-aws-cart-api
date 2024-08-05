@@ -28,6 +28,8 @@ sql
 .vscode
 *.swp
 *.md
+.elasticbeanstalk
+test
 
 # Ignore git files
 .git/
