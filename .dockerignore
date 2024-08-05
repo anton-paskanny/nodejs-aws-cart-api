@@ -11,6 +11,7 @@ dist
 
 # Ignore CDK stack folder
 cdk
+cdk-ebs
 
 # Ignore SQL scripts used for task 8
 sql
